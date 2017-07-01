@@ -1,21 +1,24 @@
 from MultiQLearning import MultiQLearning
-from MovingAgent import MovingAgent
-from Area import Area
+from MovingAgent import *
+from Area import *
 import numpy as np
+from GameGrid import *
 
 class MultiPursuit:
-    def __init__(self, num_of_agents, eps, view, erate):
+    def __init__(self, num_of_agents, eps, ysize, xsize, view, erate):
         self.eps = eps
         # 0:left 1:down 2:right 3:up
         self.mv = {0: [0, -1], 1: [1, 0], 2: [0, 1], 3: [-1, 0]}
-        self.multi_q = MultiQLearning(0.1, 0.8, 400, 500, self.env_init, self.env_update, self.extra_reward, self.check_goal)
+        self.multi_q = MultiQLearning(0.1, 0.8, 10000, 500, self.env_init, self.env_update, self.extra_reward, self.check_goal)
         # この問題特有
+        self.ysize = ysize
+        self.xsize = xsize
         self.view = view
         self.erate = erate
         self.num_of_agents = num_of_agents
-        self.area = Area(7,7,view)
+        self.area = Area(ysize,xsize,view)
         for i in range(num_of_agents):
-            self.multi_q.regAgent(MovingAgent(self.area,i+1,self.eps,[7,7,3*2+1,3*2+1],4))
+            self.multi_q.regAgent(MovingAgent(self.area,i+1,self.eps,[ysize, xsize, view*2+1,view*2+1],len(self.mv)))
         # 記録用
         self.target_loc = []
         self.multi_q.alabel({0:'左',1:'下',2:'右',3:'上',4:'-'})
@@ -78,13 +81,11 @@ class MultiPursuit:
             return False
 
 def print_list(s,s2,tloc,a1,a2):
-    a1 += ['']
-    a2 += ['']
     for idx, val in enumerate(s):
         print(val, s2[idx], tloc[idx], a1[idx], a2[idx])
 
 if __name__ == '__main__':
-    m = MultiPursuit(2, 0.05, 3, 0.3)
+    m = MultiPursuit(2, 0.05, 10, 10, 5, 0.3)
     m.multi_q.learn()
     m.multi_q.plot_learning_curve()
 
@@ -92,5 +93,8 @@ if __name__ == '__main__':
         m.multi_q.replay()
         print_list(m.multi_q.agents[0].states, m.multi_q.agents[1].states, m.target_loc, m.multi_q.agents[0].actions, m.multi_q.agents[1].actions)
         print('')
+
+        g = GameGrid(m)
+
 
 

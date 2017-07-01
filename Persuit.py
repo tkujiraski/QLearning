@@ -2,6 +2,7 @@ import QLearning
 import random
 import numpy as np
 from numpy.random import randint
+from GameGrid import GameGrid
 
 class Persuit:
     """
@@ -10,7 +11,7 @@ class Persuit:
     状態：現在の位置(y[0-6],x[0-6])、獲物の方向(上下左右、斜め各方向、視野外で９)
     アクション：上下左右への移動と停止の５つ
     """
-    def __init__(self, erate, view):
+    def __init__(self, ysize, xsize, erate, view):
         """
         Persuitの初期化
         :param erate: 獲物が移動に失敗する率
@@ -18,8 +19,8 @@ class Persuit:
         self.erate = erate
         self.view = view
         self.dif = [[0,-1],[0,1],[-1,0],[1,0],[0,0]]
-        self.ysize = 7
-        self.xsize = 7
+        self.ysize = ysize
+        self.xsize = xsize
         self.ql = QLearning.QLearning([self.ysize,self.xsize,9], 5, 0.05, 0.8, 0.1, 10000, 50000, self.inif, self.act, self.checkg)
         self.ql.alabel({0:'左',1:'右',2:'上',3:'下',4:'-'})
 
@@ -141,7 +142,7 @@ def print_list(s,tloc,a):
         print(val, tloc[idx], a[idx])
 
 if __name__ == '__main__':
-    m = Persuit(0.3, 3)
+    m = Persuit(7,7,0.3, 3)
     m.ql.learn()
     m.ql.plot_learning_curve()
 
@@ -149,3 +150,4 @@ if __name__ == '__main__':
         ss, acs = m.ql.replay()
         print_list(ss, m.target_loc, acs)
         print('')
+
