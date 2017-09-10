@@ -3,6 +3,7 @@ import numpy as np
 from numpy.random import randint
 from GameGrid import GameGrid
 from datetime import datetime
+import csv
 
 class JALPursuit:
     """
@@ -155,6 +156,16 @@ def print_list(s,tloc,a):
     for idx, val in enumerate(s):
         print(val, tloc[idx], a[idx])
 
+def save_movement(n, ysize, xsize, s,tloc,a,filename):
+    a += ['']
+    with open(filename,'w') as f:
+        writer = csv.writer(f, lineterminator='\n')
+        row = [n, ysize, xsize]
+        writer.writerow(row)
+        for idx, val in enumerate(s):
+            row = [val[0],val[1],val[4],val[5],tloc[idx][0],tloc[idx][1]]
+            writer.writerow(row)
+
 if __name__ == '__main__':
     ysize = 7
     xsize = 7
@@ -173,4 +184,5 @@ if __name__ == '__main__':
     for i in range(5):
         ss, acs = m.ql.replay()
         print_list(ss, m.target_loc, acs)
+        save_movement(2, xsize, ysize, ss, m.target_loc, acs, 'log/move_'+__file__.split('/')[-1]+datetime.now().strftime("%Y%m%d_%H%M%S")+'_'+str(i)+'.csv')
         print('')
