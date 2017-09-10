@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import csv
 
 class MultiQLearning():
     # タスクに依存しない処理を記述する
@@ -58,7 +59,7 @@ class MultiQLearning():
 
                 # sが終端状態ならばエピソードを終了
                 if self.check_goal():
-                    ##print('終了状態へ到達 %d step' % step)
+                    print('終了状態へ到達 %d step' % step)
                     self.stepsForGoal.append(step)
                     reward = 0
                     for agent in self.agents:
@@ -72,6 +73,17 @@ class MultiQLearning():
                         reward += agent.earned_reward
                     self.earnedReward.append(reward)
                     break
+
+    def save_learning_curve(self,filename):
+        with open(filename, 'w') as f:
+            writer = csv.writer(f, lineterminator='\n')
+            header = []
+            for agent in self.agents:
+                header += agent.nstate
+                header += [agent.naction, agent.eps]
+            writer.writerow(header+[self.gamma, self.alpha, self.maxEpisode, self.maxSteps])
+            writer.writerow(self.stepsForGoal)
+            writer.writerow(self.earnedReward)
 
     def plot_learning_curve(self):
         fig = plt.figure()

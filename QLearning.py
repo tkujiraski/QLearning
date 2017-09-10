@@ -2,6 +2,7 @@ import QTable
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+import csv
 
 class QLearning:
     def __init__(self, nstate, naction, eps, gamma, alpha, maxEpisode, maxSteps, initFunc, act, check_goal):
@@ -37,7 +38,7 @@ class QLearning:
 
     def learn(self):
         for ep in range(self.maxEpisode):
-            ##print('#episode %d' % ep)
+            print('#episode %d' % ep)
             # 状態sを初期化
             self.state = self.initFunc()
             earnedReward = 0
@@ -69,11 +70,11 @@ class QLearning:
 
                 # sが終端状態ならばエピソードを終了
                 if self.check_goal(self.state):
-                    ##print('終了状態へ到達 %d step' % step)
-                    self.stepsForGoal.append(step)
-                    self.earnedReward.append(earnedReward)
+                    print('終了状態へ到達 %d step' % step)
                     break
-        ##print('学習終了')
+            self.stepsForGoal.append(step)
+            self.earnedReward.append(earnedReward)
+        print('学習終了')
 
     def plot_learning_curve(self):
         fig = plt.figure()
@@ -82,6 +83,13 @@ class QLearning:
         ax.plot(range(self.maxEpisode), self.stepsForGoal, c='red')
         ax.plot(range(self.maxEpisode), self.earnedReward, c='blue')
         plt.show()
+
+    def save_learning_curve(self, filename):
+        with open(filename, 'w') as f:
+            writer = csv.writer(f, lineterminator='\n')
+            writer.writerow(self.nstate+[self.naction, self.eps, self.gamma, self.alpha, self.maxEpisode, self.maxSteps])
+            writer.writerow(self.stepsForGoal)
+            writer.writerow(self.earnedReward)
 
     def replay(self):
         """最大のQ値選択のみでGoalまでのアクション系列を返す"""

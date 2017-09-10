@@ -3,13 +3,14 @@ from MovingAgent import *
 from Area import *
 import numpy as np
 from GameGrid import *
+from datetime import datetime
 
 class MultiPursuit:
-    def __init__(self, num_of_agents, eps, ysize, xsize, view, erate):
+    def __init__(self, num_of_agents, ysize, xsize, view, erate, eps, gamma, alpha, maxEpisodes, maxSteps):
         self.eps = eps
         # 0:left 1:down 2:right 3:up
-        self.mv = {0: [0, -1], 1: [1, 0], 2: [0, 1], 3: [-1, 0]}
-        self.multi_q = MultiQLearning(0.1, 0.8, 10000, 500, self.env_init, self.env_update, self.extra_reward, self.check_goal)
+        self.mv = {0: [0, -1], 1: [1, 0], 2: [0, 1], 3: [-1, 0], 4: [0, 0]}
+        self.multi_q = MultiQLearning(alpha, gamma, maxEpisodes, maxSteps, self.env_init, self.env_update, self.extra_reward, self.check_goal)
         # この問題特有
         self.ysize = ysize
         self.xsize = xsize
@@ -34,7 +35,7 @@ class MultiPursuit:
         # ターゲットの位置を記録
         self.target_loc.append(self.target.copy())
         # ターゲットの移動
-        ta = np.random.randint(4)
+        ta = np.random.randint(len(self.mv))
         err = np.random.rand()
         if err > self.erate:
             self._move(ta)
@@ -45,7 +46,7 @@ class MultiPursuit:
         if self._is_target_caputured():
             r = 10
         else:
-            r = 0
+            r = -1
         return r
 
     def check_goal(self):
@@ -85,8 +86,18 @@ def print_list(s,s2,tloc,a1,a2):
         print(val, s2[idx], tloc[idx], a1[idx], a2[idx])
 
 if __name__ == '__main__':
-    m = MultiPursuit(2, 0.05, 10, 10, 5, 0.3)
+    ysize = 7
+    xsize = 7
+    erate = 0.3
+    view = 5
+    eps = 0.05
+    gamma = 0.8
+    alpha = 0.1
+    maxEpisodes = 100000
+    maxSteps = 500
+    m = MultiPursuit(2, ysize, xsize, view, erate, eps, alpha, gamma, maxEpisodes, maxSteps)
     m.multi_q.learn()
+    m.multi_q.save_learning_curve('log/'+__file__.split('/')[-1]+datetime.now().strftime("%Y%m%d_%H%M%S")+'.csv')
     m.multi_q.plot_learning_curve()
 
     for i in range(5):
