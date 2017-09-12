@@ -6,11 +6,11 @@ from GameGrid import *
 from datetime import datetime
 
 class MultiPursuit:
-    def __init__(self, num_of_agents, ysize, xsize, view, erate, eps, gamma, alpha, maxEpisodes, maxSteps):
+    def __init__(self, num_of_agents, ysize, xsize, view, erate, eps, gamma, alpha, maxEpisodes, maxSteps, touch, capture):
         self.eps = eps
         # 0:left 1:down 2:right 3:up
         self.mv = {0: [0, -1], 1: [1, 0], 2: [0, 1], 3: [-1, 0], 4: [0, 0]}
-        self.multi_q = MultiQLearning(alpha, gamma, maxEpisodes, maxSteps, self.env_init, self.env_update, self.extra_reward, self.check_goal)
+        self.multi_q = MultiQLearning(alpha, gamma, maxEpisodes, maxSteps, self.env_init, self.env_update, self.extra_reward, self.check_goal,[touch, capture])
         # この問題特有
         self.ysize = ysize
         self.xsize = xsize
@@ -18,8 +18,10 @@ class MultiPursuit:
         self.erate = erate
         self.num_of_agents = num_of_agents
         self.area = Area(ysize,xsize,view)
+        self.touch = touch
+        self.capture = capture
         for i in range(num_of_agents):
-            self.multi_q.regAgent(MovingAgent(self.area,i+1,self.eps,[ysize, xsize, view*2+1,view*2+1],len(self.mv)))
+            self.multi_q.regAgent(MovingAgent(self.area,i+1,self.eps,[ysize, xsize, view*2+1,view*2+1],len(self.mv),touch))
         # 記録用
         self.target_loc = []
         self.multi_q.alabel({0:'左',1:'下',2:'右',3:'上',4:'-'})
@@ -44,7 +46,7 @@ class MultiPursuit:
     def extra_reward(self):
         # 複数のエージェントがターゲットを取り囲んだ場合追加報酬
         if self._is_target_caputured():
-            r = 10
+            r = self.capture
         else:
             r = -1
         return r
@@ -93,9 +95,11 @@ if __name__ == '__main__':
     eps = 0.05
     gamma = 0.8
     alpha = 0.1
-    maxEpisodes = 100000
+    maxEpisodes = 200000
     maxSteps = 500
-    m = MultiPursuit(2, ysize, xsize, view, erate, eps, alpha, gamma, maxEpisodes, maxSteps)
+    touch = -0.5
+    capture = 10
+    m = MultiPursuit(2, ysize, xsize, view, erate, eps, alpha, gamma, maxEpisodes, maxSteps, touch, capture)
     m.multi_q.learn()
     m.multi_q.save_learning_curve('log/'+__file__.split('/')[-1]+datetime.now().strftime("%Y%m%d_%H%M%S")+'.csv')
     m.multi_q.plot_learning_curve()

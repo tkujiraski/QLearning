@@ -4,10 +4,11 @@ import numpy as np
 import random
 
 class MovingAgent(Agent):
-    def __init__(self, area, id, eps, nstate, naction):
+    def __init__(self, area, id, eps, nstate, naction, touch):
         super().__init__(eps, nstate, naction)
         self.area = area
         self.id = id
+        self.touch = touch
         # 0:left 1:down 2:right 3:up
         self.mv = {0: [0, -1], 1: [1, 0], 2: [0, 1], 3: [-1, 0], 4: [0, 0]}
         self.initState()
@@ -37,12 +38,12 @@ class MovingAgent(Agent):
             self.action = self.q.getMaxAction(tuple(self.state))
         objid = self._move(self.action)
 
-        ## ターゲットと隣接した場合報酬。これはタスク依存しすぎ
-        #dy, dx = self.area.search_target(self.position)
-        #if (abs(dx) == 1 and dy == 0) or (abs(dy) == 1 and dx == 0):
-        #    r = 3
-        #self.r = r
-        #self.earned_reward += r
+        # ターゲットと隣接した場合報酬。これはタスク依存しすぎ
+        dy, dx = self.area.search_target(self.position)
+        if (abs(dx) == 1 and dy == 0) or (abs(dy) == 1 and dx == 0):
+            r = self.touch
+        self.r = r
+        self.earned_reward += r
 
     # 公開メソッド
     def reset_position(self):

@@ -12,7 +12,7 @@ class JALPursuit:
     状態：現在の位置(y[0-6],x[0-6])、獲物の方向(上下左右、斜め各方向、視野外で９)
     アクション：上下左右への移動と停止の５つ
     """
-    def __init__(self, ysize, xsize, erate, view, eps, gamma, alpha, maxEpisodes, maxSteps):
+    def __init__(self, ysize, xsize, erate, view, eps, gamma, alpha, maxEpisodes, maxSteps, touch, capture):
         """
         Persuitの初期化
         :param erate: 獲物が移動に失敗する率
@@ -22,7 +22,9 @@ class JALPursuit:
         self.dif = [[0,-1],[0,1],[-1,0],[1,0],[0,0]]
         self.ysize = ysize
         self.xsize = xsize
-        self.ql = QLearning.QLearning([self.ysize,self.xsize,self.view*2+1,self.view*2+1,self.ysize, self.xsize, self.view*2+1, self.view*2+1], 25, eps, gamma, alpha, maxEpisodes, maxSteps, self.inif, self.act, self.checkg)
+        self.touch = touch
+        self.capture = capture
+        self.ql = QLearning.QLearning([self.ysize,self.xsize,self.view*2+1,self.view*2+1,self.ysize, self.xsize, self.view*2+1, self.view*2+1], 25, eps, gamma, alpha, maxEpisodes, maxSteps, self.inif, self.act, self.checkg, [touch, capture])
         self.ql.alabel({0:'左左',1:'左右',2:'左上',3:'左下',4:'左-',5:'右左',6:'右右',7:'右上',8:'右下',9:'右-',10:'上左',11:'上右',12:'上上',13:'上下',14:'上-',15:'下左',16:'下右',17:'下上',18:'下下',19:'下-',20:'-左',21:'-右',22:'-上',23:'-下',24:'--',})
 
     def inif(self):
@@ -79,7 +81,7 @@ class JALPursuit:
         s[6] = dy
         s[7] = dx
 
-        # どちらかが隣接すれば3, 捕獲すれば1,それ以外は-1
+        # どちらかが隣接すればtouch, 捕獲すればcapture,それ以外は-1
         r = self.reward(hunter1,hunter2,self.target)
 
         return r
@@ -96,8 +98,10 @@ class JALPursuit:
             sum += 1
         if h2 in n:
             sum += 1
-        if sum == 2:
-            return 10
+        if sum == 1:
+            return self.touch
+        elif sum == 2:
+            return self.touch*2+self.capture
         else:
             return -1
 
@@ -146,7 +150,7 @@ class JALPursuit:
         """stateが終端状態がどうかを判定する"""
         hunter1 = [state[0],state[1]]
         hunter2 = [state[4],state[5]]
-        if self.reward(hunter1,hunter2,self.target) == 10:
+        if self.reward(hunter1,hunter2,self.target) == self.touch*2+self.capture:
             return True
         else:
             return False
@@ -156,11 +160,11 @@ def print_list(s,tloc,a):
     for idx, val in enumerate(s):
         print(val, tloc[idx], a[idx])
 
-def save_movement(n, ysize, xsize, s,tloc,a,filename):
+def save_movement(n, ysize, xsize, touch, capture, s, tloc, a, filename):
     a += ['']
     with open(filename,'w') as f:
         writer = csv.writer(f, lineterminator='\n')
-        row = [n, ysize, xsize]
+        row = [n, ysize, xsize, touch, capture]
         writer.writerow(row)
         for idx, val in enumerate(s):
             row = [val[0],val[1],val[4],val[5],tloc[idx][0],tloc[idx][1]]
@@ -174,9 +178,11 @@ if __name__ == '__main__':
     eps = 0.05
     gamma = 0.8
     alpha = 0.1
-    maxEpisodes = 100000
+    maxEpisodes = 200000
     maxSteps = 500
-    m = JALPursuit(ysize,xsize,erate, view, eps, gamma, alpha, maxEpisodes, maxSteps)
+    touch = -0.5
+    capture = 10
+    m = JALPursuit(ysize,xsize,erate, view, eps, gamma, alpha, maxEpisodes, maxSteps, touch, capture)
     m.ql.learn()
     m.ql.save_learning_curve('log/'+__file__.split('/')[-1]+datetime.now().strftime("%Y%m%d_%H%M%S")+'.csv')
     m.ql.plot_learning_curve()
@@ -184,5 +190,5 @@ if __name__ == '__main__':
     for i in range(5):
         ss, acs = m.ql.replay()
         print_list(ss, m.target_loc, acs)
-        save_movement(2, xsize, ysize, ss, m.target_loc, acs, 'log/move_'+__file__.split('/')[-1]+datetime.now().strftime("%Y%m%d_%H%M%S")+'_'+str(i)+'.csv')
+        save_movement(2, xsize, ysize, touch, capture, ss, m.target_loc, acs, 'log/move_'+__file__.split('/')[-1]+datetime.now().strftime("%Y%m%d_%H%M%S")+'_'+str(i)+'.csv')
         print('')

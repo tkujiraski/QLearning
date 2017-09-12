@@ -3,7 +3,7 @@ import csv
 
 class MultiQLearning():
     # タスクに依存しない処理を記述する
-    def __init__(self, alpha, gamma, maxEpisode, maxSteps, env_init, env_update, extra_reward, check_goal):
+    def __init__(self, alpha, gamma, maxEpisode, maxSteps, env_init, env_update, extra_reward, check_goal, vals):
         self.agents = []
         self.env_init = env_init
         self.env_update = env_update
@@ -16,6 +16,7 @@ class MultiQLearning():
         self.stepsForGoal = []
         self.earnedReward = []
         self.adic = []
+        self.vals = vals
 
     def alabel(self,adic):
         self.adic = adic
@@ -81,7 +82,8 @@ class MultiQLearning():
             for agent in self.agents:
                 header += agent.nstate
                 header += [agent.naction, agent.eps]
-            writer.writerow(header+[self.gamma, self.alpha, self.maxEpisode, self.maxSteps])
+            row = header+[self.gamma, self.alpha, self.maxEpisode, self.maxSteps]+self.vals
+            writer.writerow(row)
             writer.writerow(self.stepsForGoal)
             writer.writerow(self.earnedReward)
 

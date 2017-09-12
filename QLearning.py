@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import csv
 
 class QLearning:
-    def __init__(self, nstate, naction, eps, gamma, alpha, maxEpisode, maxSteps, initFunc, act, check_goal):
+    def __init__(self, nstate, naction, eps, gamma, alpha, maxEpisode, maxSteps, initFunc, act, check_goal, vals):
         """
         Q Learningのパラメータを設定する
         :param: nstate:
@@ -30,6 +30,7 @@ class QLearning:
         self.initFunc = initFunc
         self.act = act
         self.check_goal = check_goal
+        self.vals = vals
         self.q = QTable.QTable(nstate, naction)
         self.adic = {}
 
@@ -87,7 +88,7 @@ class QLearning:
     def save_learning_curve(self, filename):
         with open(filename, 'w') as f:
             writer = csv.writer(f, lineterminator='\n')
-            writer.writerow(self.nstate+[self.naction, self.eps, self.gamma, self.alpha, self.maxEpisode, self.maxSteps])
+            writer.writerow(self.nstate+[self.naction, self.eps, self.gamma, self.alpha, self.maxEpisode, self.maxSteps]+self.vals)
             writer.writerow(self.stepsForGoal)
             writer.writerow(self.earnedReward)
 
